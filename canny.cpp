@@ -117,7 +117,7 @@ double angle_radians(double x, double y);
 void non_max_supp(short *mag, short *gradx, short *grady, int nrows, int ncols,
                   unsigned char *result);
 
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
    char *infilename = NULL;  /* Name of the input image */
    char *dirfilename = NULL; /* Name of the output gradient direction image */
@@ -213,13 +213,12 @@ main(int argc, char *argv[])
 void canny(unsigned char *image, int rows, int cols, float sigma,
            float tlow, float thigh, unsigned char **edge, char *fname)
 {
-   FILE *fpdir = NULL;    /* File to write the gradient image to.     */
-   unsigned char *nms;    /* Points that are local maximal magnitude. */
-   short int *smoothedim, /* The image after gaussian smoothing.      */
-       *delta_x,          /* The first devivative image, x-direction. */
-       *delta_y,          /* The first derivative image, y-direction. */
-       *magnitude;        /* The magnitude of the gadient image.      */
-   int r, c, pos;
+   FILE *fpdir = NULL;        /* File to write the gradient image to.     */
+   unsigned char *nms;        /* Points that are local maximal magnitude. */
+   short int *smoothedim,     /* The image after gaussian smoothing.      */
+       *delta_x,              /* The first devivative image, x-direction. */
+       *delta_y,              /* The first derivative image, y-direction. */
+       *magnitude;            /* The magnitude of the gadient image.      */
    float *dir_radians = NULL; /* Gradient direction image.                */
 
    /****************************************************************************
@@ -652,7 +651,6 @@ void follow_edges(unsigned char *edgemapptr, short *edgemagptr, short lowval,
    short *tempmagptr;
    unsigned char *tempmapptr;
    int i;
-   float thethresh;
    int x[8] = {1, 1, 0, -1, -1, -1, 0, 1},
        y[8] = {0, 1, 1, 1, 0, -1, -1, -1};
 
@@ -680,9 +678,9 @@ void follow_edges(unsigned char *edgemapptr, short *edgemagptr, short lowval,
 void apply_hysteresis(short int *mag, unsigned char *nms, int rows, int cols,
                       float tlow, float thigh, unsigned char *edge)
 {
-   int r, c, pos, numedges, lowcount, highcount, lowthreshold, highthreshold,
-       i, hist[32768], rr, cc;
-   short int maximum_mag, sumpix;
+   int r, c, pos, numedges, highcount, lowthreshold, highthreshold,
+       hist[32768];
+   short int maximum_mag = 0;
 
    /****************************************************************************
    * Initialize the edge map to possible edges everywhere the non-maximal
@@ -810,8 +808,8 @@ void non_max_supp(short *mag, short *gradx, short *grady, int nrows, int ncols,
    short *magrowptr, *magptr;
    short *gxrowptr, *gxptr;
    short *gyrowptr, *gyptr, z1, z2;
-   short m00, gx, gy;
-   float mag1, mag2, xperp, yperp;
+   short m00, gx = 0, gy = 0;
+   float mag1, mag2, xperp = 0, yperp = 0;
    unsigned char *resultrowptr, *resultptr;
 
    /****************************************************************************
@@ -1086,7 +1084,7 @@ int read_pgm_image(char *infilename, unsigned char **image, int *rows,
          fclose(fp);
       return (0);
    }
-   if ((*rows) != fread((*image), (*cols), (*rows), fp))
+   if ((*rows) != static_cast<int>(fread((*image), (*cols), (*rows), fp)))
    {
       fprintf(stderr, "Error reading the image data in read_pgm_image().\n");
       if (fp != stdin)
@@ -1139,7 +1137,7 @@ int write_pgm_image(char *outfilename, unsigned char *image, int rows,
    /***************************************************************************
    * Write the image data to the file.
    ***************************************************************************/
-   if (rows != fwrite(image, cols, rows, fp))
+   if (rows != static_cast<int>(fwrite(image, cols, rows, fp)))
    {
       fprintf(stderr, "Error writing the image data in write_pgm_image().\n");
       if (fp != stdout)
