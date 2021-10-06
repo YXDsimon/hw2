@@ -91,11 +91,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-// #define M_PI 3.14159265358979323846264338327950288
 #define VERBOSE 0
 #define BOOSTBLURFACTOR 90.0
 
-int read_pgm_image(char *infilename, unsigned char **image, int *rows,
+int read_pgm_image(const char *infilename, unsigned char **image, int *rows,
                    int *cols);
 int write_pgm_image(char *outfilename, unsigned char *image, int rows,
                     int cols, const char *comment, int maxval);
@@ -119,16 +118,16 @@ void non_max_supp(short *mag, short *gradx, short *grady, int nrows, int ncols,
 
 int main(int argc, char *argv[])
 {
-   char *infilename = NULL;  /* Name of the input image */
-   char *dirfilename = NULL; /* Name of the output gradient direction image */
-   char outfilename[128];    /* Name of the output "edge" image */
-   char composedfname[128];  /* Name of the output "direction" image */
-   unsigned char *image;     /* The input image */
-   unsigned char *edge;      /* The output edge image */
-   int rows, cols;           /* The dimensions of the image. */
-   float sigma,              /* Standard deviation of the gaussian kernel. */
-       tlow,                 /* Fraction of the high threshold in hysteresis. */
-       thigh;                /* High hysteresis threshold control. The actual
+   const char *infilename = "golfcart.pgm"; /* Name of the input image */
+   char *dirfilename = NULL;                /* Name of the output gradient direction image */
+   char outfilename[128];                   /* Name of the output "edge" image */
+   char composedfname[128];                 /* Name of the output "direction" image */
+   unsigned char *image;                    /* The input image */
+   unsigned char *edge;                     /* The output edge image */
+   int rows = 240, cols = 320;              /* The dimensions of the image. */
+   float sigma = 0.6,                       /* Standard deviation of the gaussian kernel. */
+       tlow = 0.3,                          /* Fraction of the high threshold in hysteresis. */
+       thigh = 0.8;                         /* High hysteresis threshold control. The actual
 			        threshold is the (100 * thigh) percentage point
 			        in the histogram of the magnitude of the
 			        gradient image that passes non-maximal
@@ -137,34 +136,29 @@ int main(int argc, char *argv[])
    /****************************************************************************
    * Get the command line arguments.
    ****************************************************************************/
-   if (argc < 5)
-   {
-      fprintf(stderr, "\n<USAGE> %s image sigma tlow thigh [writedirim]\n", argv[0]);
-      fprintf(stderr, "\n      image:      An image to process. Must be in ");
-      fprintf(stderr, "PGM format.\n");
-      fprintf(stderr, "      sigma:      Standard deviation of the gaussian");
-      fprintf(stderr, " blur kernel.\n");
-      fprintf(stderr, "      tlow:       Fraction (0.0-1.0) of the high ");
-      fprintf(stderr, "edge strength threshold.\n");
-      fprintf(stderr, "      thigh:      Fraction (0.0-1.0) of the distribution");
-      fprintf(stderr, " of non-zero edge\n                  strengths for ");
-      fprintf(stderr, "hysteresis. The fraction is used to compute\n");
-      fprintf(stderr, "                  the high edge strength threshold.\n");
-      fprintf(stderr, "      writedirim: Optional argument to output ");
-      fprintf(stderr, "a floating point");
-      fprintf(stderr, " direction image.\n\n");
-      exit(1);
-   }
+   // if (argc < 5)
+   // {
+   //    fprintf(stderr, "\n<USAGE> %s image sigma tlow thigh [writedirim]\n", argv[0]);
+   //    fprintf(stderr, "\n      image:      An image to process. Must be in ");
+   //    fprintf(stderr, "PGM format.\n");
+   //    fprintf(stderr, "      sigma:      Standard deviation of the gaussian");
+   //    fprintf(stderr, " blur kernel.\n");
+   //    fprintf(stderr, "      tlow:       Fraction (0.0-1.0) of the high ");
+   //    fprintf(stderr, "edge strength threshold.\n");
+   //    fprintf(stderr, "      thigh:      Fraction (0.0-1.0) of the distribution");
+   //    fprintf(stderr, " of non-zero edge\n                  strengths for ");
+   //    fprintf(stderr, "hysteresis. The fraction is used to compute\n");
+   //    fprintf(stderr, "                  the high edge strength threshold.\n");
+   //    fprintf(stderr, "      writedirim: Optional argument to output ");
+   //    fprintf(stderr, "a floating point");
+   //    fprintf(stderr, " direction image.\n\n");
+   //    exit(1);
+   // }
 
-   infilename = argv[1];
-   sigma = atof(argv[2]);
-   tlow = atof(argv[3]);
-   thigh = atof(argv[4]);
-
-   if (argc == 6)
-      dirfilename = infilename;
-   else
-      dirfilename = NULL;
+   // if (argc == 6)
+   //    dirfilename = infilename;
+   // else
+   //    dirfilename = NULL;
 
    /****************************************************************************
    * Read in the image. This read function allocates memory for the image.
@@ -1029,7 +1023,7 @@ void non_max_supp(short *mag, short *gradx, short *grady, int nrows, int ncols,
 * All comments in the header are discarded in the process of reading the
 * image. Upon failure, this function returns 0, upon sucess it returns 1.
 ******************************************************************************/
-int read_pgm_image(char *infilename, unsigned char **image, int *rows,
+int read_pgm_image(const char *infilename, unsigned char **image, int *rows,
                    int *cols)
 {
    FILE *fp;
