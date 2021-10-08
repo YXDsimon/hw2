@@ -11,7 +11,7 @@ int write_pgm_image(char *outfilename, unsigned char *image, int rows,
                     int cols, const char *comment, int maxval);
 
 void canny(unsigned char image[ROW][COL], int rows, int cols, float sigma,
-           float tlow, float thigh, unsigned char **edge, char *fname);
+           float tlow, float thigh, unsigned char edge[ROW * COL], char *fname);
 void gaussian_smooth(unsigned char image[ROW][COL], int rows, int cols, float sigma,
                      short int **smoothedim);
 void make_gaussian_kernel(float sigma, float **kernel, int *windowsize);
@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
    char outfilename[128];                   /* Name of the output "edge" image */
    char composedfname[128];                 /* Name of the output "direction" image */
    unsigned char image[ROW][COL];           /* The input image */
-   unsigned char *edge;                     /* The output edge image */
+   unsigned char edge[ROW * COL];           /* The output edge image */
    int rows = ROW, cols = COL;              /* The dimensions of the image. */
    float sigma = 0.6,                       /* Standard deviation of the gaussian kernel. */
        tlow = 0.3,                          /* Fraction of the high threshold in hysteresis. */
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
               sigma, tlow, thigh);
       dirfilename = composedfname;
    }
-   canny(image, rows, cols, sigma, tlow, thigh, &edge, dirfilename);
+   canny(image, rows, cols, sigma, tlow, thigh, edge, dirfilename);
 
    /****************************************************************************
    * Write out the edge image to a file.
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 * DATE: 2/15/96
 *******************************************************************************/
 void canny(unsigned char image[ROW][COL], int rows, int cols, float sigma,
-           float tlow, float thigh, unsigned char **edge, char *fname)
+           float tlow, float thigh, unsigned char edge[ROW * COL], char *fname)
 {
    FILE *fpdir = NULL;           /* File to write the gradient image to.     */
    unsigned char nms[ROW * COL]; /* Points that are local maximal magnitude. */
@@ -173,7 +173,7 @@ void canny(unsigned char image[ROW][COL], int rows, int cols, float sigma,
       exit(1);
    }
 
-   apply_hysteresis(magnitude, nms, rows, cols, tlow, thigh, *edge);
+   apply_hysteresis(magnitude, nms, rows, cols, tlow, thigh, edge);
 
    /****************************************************************************
    * Free all of the memory that we allocated except for the edge image that
