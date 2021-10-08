@@ -137,7 +137,6 @@ void canny(unsigned char image[ROW][COL], int rows, int cols, float sigma,
       }
       fwrite(dir_radians, sizeof(float), rows * cols, fpdir);
       fclose(fpdir);
-      free(dir_radians);
    }
 
    /****************************************************************************
@@ -204,17 +203,17 @@ void radian_direction(short int *delta_x, short int *delta_y, int rows,
                       int cols, float **dir_radians, int xdirtag, int ydirtag)
 {
    int r, c, pos;
-   float *dirim = NULL;
+   float dirim[ROW * COL];
    double dx, dy;
 
    /****************************************************************************
    * Allocate an image to store the direction of the gradient.
    ****************************************************************************/
-   if ((dirim = (float *)calloc(rows * cols, sizeof(float))) == NULL)
-   {
-      fprintf(stderr, "Error allocating the gradient direction image.\n");
-      exit(1);
-   }
+   // if ((dirim = (float *)calloc(rows * cols, sizeof(float))) == NULL)
+   // {
+   //    fprintf(stderr, "Error allocating the gradient direction image.\n");
+   //    exit(1);
+   // }
    *dir_radians = dirim;
 
    for (r = 0, pos = 0; r < rows; r++)
