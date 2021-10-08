@@ -5,6 +5,7 @@
 #define BOOSTBLURFACTOR 90.0
 #define ROW 240
 #define COL 320
+#define WINDOW_SIZE 21
 int read_pgm_image(const char *infilename, unsigned char image[ROW][COL], int *rows,
                    int *cols);
 int write_pgm_image(char *outfilename, unsigned char *image, int rows,
@@ -373,7 +374,7 @@ void gaussian_smooth(unsigned char image[ROW][COL], int rows, int cols, float si
        windowsize,          /* Dimension of the gaussian kernel. */
        center;              /* Half of the windowsize. */
    float tempim[ROW * COL], /* Buffer for separable filter gaussian smoothing. */
-       kernel[ROW * COL],   /* A one dimensional gaussian kernel. */
+       kernel[WINDOW_SIZE], /* A one dimensional gaussian kernel. */
        dot,                 /* Dot product summing variable. */
        sum;                 /* Sum of the kernel weights variable. */
 
