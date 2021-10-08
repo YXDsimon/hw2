@@ -3,15 +3,16 @@
 #include <math.h>
 #define VERBOSE 0
 #define BOOSTBLURFACTOR 90.0
-
-int read_pgm_image(const char *infilename, unsigned char **image, int *rows,
+#define ROW 240
+#define COL 320
+int read_pgm_image(const char *infilename, unsigned char image[ROW][COL], int *rows,
                    int *cols);
 int write_pgm_image(char *outfilename, unsigned char *image, int rows,
                     int cols, const char *comment, int maxval);
 
-void canny(unsigned char *image, int rows, int cols, float sigma,
+void canny(unsigned char image[ROW][COL], int rows, int cols, float sigma,
            float tlow, float thigh, unsigned char **edge, char *fname);
-void gaussian_smooth(unsigned char *image, int rows, int cols, float sigma,
+void gaussian_smooth(unsigned char image[ROW][COL], int rows, int cols, float sigma,
                      short int **smoothedim);
 void make_gaussian_kernel(float sigma, float **kernel, int *windowsize);
 void derrivative_x_y(short int *smoothedim, int rows, int cols,
@@ -32,9 +33,9 @@ int main(int argc, char *argv[])
    char *dirfilename = NULL;                /* Name of the output gradient direction image */
    char outfilename[128];                   /* Name of the output "edge" image */
    char composedfname[128];                 /* Name of the output "direction" image */
-   unsigned char *image;                    /* The input image */
+   unsigned char image[ROW][COL];           /* The input image */
    unsigned char *edge;                     /* The output edge image */
-   int rows = 240, cols = 320;              /* The dimensions of the image. */
+   int rows = ROW, cols = COL;              /* The dimensions of the image. */
    float sigma = 0.6,                       /* Standard deviation of the gaussian kernel. */
        tlow = 0.3,                          /* Fraction of the high threshold in hysteresis. */
        thigh = 0.8;                         /* High hysteresis threshold control. The actual
@@ -48,7 +49,7 @@ int main(int argc, char *argv[])
    ****************************************************************************/
    if (VERBOSE)
       printf("Reading the image %s.\n", infilename);
-   if (read_pgm_image(infilename, &image, &rows, &cols) == 0)
+   if (read_pgm_image(infilename, image, &rows, &cols) == 0)
    {
       fprintf(stderr, "Error reading the input image, %s.\n", infilename);
       exit(1);
@@ -87,7 +88,7 @@ int main(int argc, char *argv[])
 * NAME: Mike Heath
 * DATE: 2/15/96
 *******************************************************************************/
-void canny(unsigned char *image, int rows, int cols, float sigma,
+void canny(unsigned char image[ROW][COL], int rows, int cols, float sigma,
            float tlow, float thigh, unsigned char **edge, char *fname)
 {
    FILE *fpdir = NULL;        /* File to write the gradient image to.     */
@@ -372,7 +373,7 @@ void derrivative_x_y(short int *smoothedim, int rows, int cols,
 * NAME: Mike Heath
 * DATE: 2/15/96
 *******************************************************************************/
-void gaussian_smooth(unsigned char *image, int rows, int cols, float sigma,
+void gaussian_smooth(unsigned char image[ROW][COL], int rows, int cols, float sigma,
                      short int **smoothedim)
 {
    int r, c, rr, cc, /* Counter variables. */
@@ -421,7 +422,8 @@ void gaussian_smooth(unsigned char *image, int rows, int cols, float sigma,
          {
             if (((c + cc) >= 0) && ((c + cc) < cols))
             {
-               dot += (float)image[r * cols + (c + cc)] * kernel[center + cc];
+               // dot += (float)image[r * cols + (c + cc)] * kernel[center + cc];
+               dot += (float)image[r][c + cc] * kernel[center + cc];
                sum += kernel[center + cc];
             }
          }
@@ -906,7 +908,7 @@ void non_max_supp(short *mag, short *gradx, short *grady, int nrows, int ncols,
 * All comments in the header are discarded in the process of reading the
 * image. Upon failure, this function returns 0, upon sucess it returns 1.
 ******************************************************************************/
-int read_pgm_image(const char *infilename, unsigned char **image, int *rows,
+int read_pgm_image(const char *infilename, unsigned char image[ROW][COL], int *rows,
                    int *cols)
 {
    FILE *fp;
@@ -954,7 +956,8 @@ int read_pgm_image(const char *infilename, unsigned char **image, int *rows,
    /***************************************************************************
    * Allocate memory to store the image then read the image from the file.
    ***************************************************************************/
-   if (((*image) = (unsigned char *)malloc((*rows) * (*cols))) == NULL)
+   // if (((*image) = (unsigned char *)malloc((*rows) * (*cols))) == NULL)
+   if (image == NULL)
    {
       fprintf(stderr, "Memory allocation failure in read_pgm_image().\n");
       if (fp != stdin)
@@ -966,7 +969,7 @@ int read_pgm_image(const char *infilename, unsigned char **image, int *rows,
       fprintf(stderr, "Error reading the image data in read_pgm_image().\n");
       if (fp != stdin)
          fclose(fp);
-      free((*image));
+      // free((*image));
       return (0);
    }
 
