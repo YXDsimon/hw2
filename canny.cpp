@@ -13,7 +13,7 @@ int write_pgm_image(char *outfilename, unsigned char *image, int rows,
 void canny(unsigned char image[ROW][COL], int rows, int cols, float sigma,
            float tlow, float thigh, unsigned char edge[ROW * COL], char *fname);
 void gaussian_smooth(unsigned char image[ROW][COL], int rows, int cols, float sigma,
-                     short int **smoothedim);
+                     short int *smoothedim);
 void make_gaussian_kernel(float sigma, float **kernel, int *windowsize);
 void derrivative_x_y(short int *smoothedim, int rows, int cols,
                      short int *delta_x, short int *delta_y);
@@ -91,13 +91,13 @@ int main(int argc, char *argv[])
 void canny(unsigned char image[ROW][COL], int rows, int cols, float sigma,
            float tlow, float thigh, unsigned char edge[ROW * COL], char *fname)
 {
-   FILE *fpdir = NULL;           /* File to write the gradient image to.     */
-   unsigned char nms[ROW * COL]; /* Points that are local maximal magnitude. */
-   short int *smoothedim,        /* The image after gaussian smoothing.      */
-       delta_x[ROW * COL],       /* The first devivative image, x-direction. */
-       delta_y[ROW * COL],       /* The first derivative image, y-direction. */
-       magnitude[ROW * COL];     /* The magnitude of the gadient image.      */
-   float *dir_radians = NULL;    /* Gradient direction image.                */
+   FILE *fpdir = NULL;              /* File to write the gradient image to.     */
+   unsigned char nms[ROW * COL];    /* Points that are local maximal magnitude. */
+   short int smoothedim[ROW * COL], /* The image after gaussian smoothing.      */
+       delta_x[ROW * COL],          /* The first devivative image, x-direction. */
+       delta_y[ROW * COL],          /* The first derivative image, y-direction. */
+       magnitude[ROW * COL];        /* The magnitude of the gadient image.      */
+   float *dir_radians = NULL;       /* Gradient direction image.                */
 
    /****************************************************************************
    * Perform gaussian smoothing on the image using the input standard
@@ -105,7 +105,7 @@ void canny(unsigned char image[ROW][COL], int rows, int cols, float sigma,
    ****************************************************************************/
    if (VERBOSE)
       printf("Smoothing the image using a gaussian kernel.\n");
-   gaussian_smooth(image, rows, cols, sigma, &smoothedim);
+   gaussian_smooth(image, rows, cols, sigma, smoothedim);
 
    /****************************************************************************
    * Compute the first derivative in the x and y directions.
@@ -173,12 +173,6 @@ void canny(unsigned char image[ROW][COL], int rows, int cols, float sigma,
    }
 
    apply_hysteresis(magnitude, nms, rows, cols, tlow, thigh, edge);
-
-   /****************************************************************************
-   * Free all of the memory that we allocated except for the edge image that
-   * is still being used to store out result.
-   ****************************************************************************/
-   free(smoothedim);
 }
 
 /*******************************************************************************
@@ -373,7 +367,7 @@ void derrivative_x_y(short int *smoothedim, int rows, int cols,
 * DATE: 2/15/96
 *******************************************************************************/
 void gaussian_smooth(unsigned char image[ROW][COL], int rows, int cols, float sigma,
-                     short int **smoothedim)
+                     short int *smoothedim)
 {
    int r, c, rr, cc,        /* Counter variables. */
        windowsize,          /* Dimension of the gaussian kernel. */
@@ -394,14 +388,14 @@ void gaussian_smooth(unsigned char image[ROW][COL], int rows, int cols, float si
    /****************************************************************************
    * Allocate a temporary buffer image and the smoothed image.
    ****************************************************************************/
-   //   calloc 7
+   // calloc 7
    if (tempim == NULL)
    {
       fprintf(stderr, "Error allocating the buffer image.\n");
       exit(1);
    }
-   if (((*smoothedim) = (short int *)calloc(rows * cols,
-                                            sizeof(short int))) == NULL)
+   // calloc 8
+   if (smoothedim == NULL)
    {
       fprintf(stderr, "Error allocating the smoothed image.\n");
       exit(1);
@@ -450,7 +444,7 @@ void gaussian_smooth(unsigned char image[ROW][COL], int rows, int cols, float si
                sum += kernel[center + rr];
             }
          }
-         (*smoothedim)[r * cols + c] = (short int)(dot * BOOSTBLURFACTOR / sum + 0.5);
+         smoothedim[r * cols + c] = (short int)(dot * BOOSTBLURFACTOR / sum + 0.5);
       }
    }
    free(kernel);
