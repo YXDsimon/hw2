@@ -16,7 +16,7 @@ void gaussian_smooth(unsigned char image[ROW][COL], int rows, int cols, float si
                      short int **smoothedim);
 void make_gaussian_kernel(float sigma, float **kernel, int *windowsize);
 void derrivative_x_y(short int *smoothedim, int rows, int cols,
-                     short int **delta_x, short int **delta_y);
+                     short int *delta_x, short int *delta_y);
 void magnitude_x_y(short int *delta_x, short int *delta_y, int rows, int cols,
                    short int *magnitude);
 void apply_hysteresis(short int *mag, unsigned char *nms, int rows, int cols,
@@ -94,8 +94,8 @@ void canny(unsigned char image[ROW][COL], int rows, int cols, float sigma,
    FILE *fpdir = NULL;           /* File to write the gradient image to.     */
    unsigned char nms[ROW * COL]; /* Points that are local maximal magnitude. */
    short int *smoothedim,        /* The image after gaussian smoothing.      */
-       *delta_x,                 /* The first devivative image, x-direction. */
-       *delta_y,                 /* The first derivative image, y-direction. */
+       delta_x[ROW * COL],       /* The first devivative image, x-direction. */
+       delta_y[ROW * COL],       /* The first derivative image, y-direction. */
        magnitude[ROW * COL];     /* The magnitude of the gadient image.      */
    float *dir_radians = NULL;    /* Gradient direction image.                */
 
@@ -112,7 +112,7 @@ void canny(unsigned char image[ROW][COL], int rows, int cols, float sigma,
    ****************************************************************************/
    if (VERBOSE)
       printf("Computing the X and Y first derivatives.\n");
-   derrivative_x_y(smoothedim, rows, cols, &delta_x, &delta_y);
+   derrivative_x_y(smoothedim, rows, cols, delta_x, delta_y);
 
    /****************************************************************************
    * This option to write out the direction of the edge gradient was added
@@ -179,8 +179,6 @@ void canny(unsigned char image[ROW][COL], int rows, int cols, float sigma,
    * is still being used to store out result.
    ****************************************************************************/
    free(smoothedim);
-   free(delta_x);
-   free(delta_y);
 }
 
 /*******************************************************************************
@@ -312,19 +310,20 @@ void magnitude_x_y(short int *delta_x, short int *delta_y, int rows, int cols,
 * DATE: 2/15/96
 *******************************************************************************/
 void derrivative_x_y(short int *smoothedim, int rows, int cols,
-                     short int **delta_x, short int **delta_y)
+                     short int *delta_x, short int *delta_y)
 {
    int r, c, pos;
 
    /****************************************************************************
    * Allocate images to store the derivatives. 
    ****************************************************************************/
-   if (((*delta_x) = (short *)calloc(rows * cols, sizeof(short))) == NULL)
+   //   CALLOC 5
+   if (delta_x == NULL)
    {
       fprintf(stderr, "Error allocating the delta_x image.\n");
       exit(1);
    }
-   if (((*delta_y) = (short *)calloc(rows * cols, sizeof(short))) == NULL)
+   if (delta_y == NULL)
    {
       fprintf(stderr, "Error allocating the delta_x image.\n");
       exit(1);
@@ -339,13 +338,13 @@ void derrivative_x_y(short int *smoothedim, int rows, int cols,
    for (r = 0; r < rows; r++)
    {
       pos = r * cols;
-      (*delta_x)[pos] = smoothedim[pos + 1] - smoothedim[pos];
+      delta_x[pos] = smoothedim[pos + 1] - smoothedim[pos];
       pos++;
       for (c = 1; c < (cols - 1); c++, pos++)
       {
-         (*delta_x)[pos] = smoothedim[pos + 1] - smoothedim[pos - 1];
+         delta_x[pos] = smoothedim[pos + 1] - smoothedim[pos - 1];
       }
-      (*delta_x)[pos] = smoothedim[pos] - smoothedim[pos - 1];
+      delta_x[pos] = smoothedim[pos] - smoothedim[pos - 1];
    }
 
    /****************************************************************************
@@ -357,13 +356,13 @@ void derrivative_x_y(short int *smoothedim, int rows, int cols,
    for (c = 0; c < cols; c++)
    {
       pos = c;
-      (*delta_y)[pos] = smoothedim[pos + cols] - smoothedim[pos];
+      delta_y[pos] = smoothedim[pos + cols] - smoothedim[pos];
       pos += cols;
       for (r = 1; r < (rows - 1); r++, pos += cols)
       {
-         (*delta_y)[pos] = smoothedim[pos + cols] - smoothedim[pos - cols];
+         delta_y[pos] = smoothedim[pos + cols] - smoothedim[pos - cols];
       }
-      (*delta_y)[pos] = smoothedim[pos] - smoothedim[pos - cols];
+      delta_y[pos] = smoothedim[pos] - smoothedim[pos - cols];
    }
 }
 
