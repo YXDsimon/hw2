@@ -91,13 +91,13 @@ int main(int argc, char *argv[])
 void canny(unsigned char image[ROW][COL], int rows, int cols, float sigma,
            float tlow, float thigh, unsigned char **edge, char *fname)
 {
-   FILE *fpdir = NULL;        /* File to write the gradient image to.     */
-   unsigned char *nms;        /* Points that are local maximal magnitude. */
-   short int *smoothedim,     /* The image after gaussian smoothing.      */
-       *delta_x,              /* The first devivative image, x-direction. */
-       *delta_y,              /* The first derivative image, y-direction. */
-       *magnitude;            /* The magnitude of the gadient image.      */
-   float *dir_radians = NULL; /* Gradient direction image.                */
+   FILE *fpdir = NULL;           /* File to write the gradient image to.     */
+   unsigned char nms[ROW * COL]; /* Points that are local maximal magnitude. */
+   short int *smoothedim,        /* The image after gaussian smoothing.      */
+       *delta_x,                 /* The first devivative image, x-direction. */
+       *delta_y,                 /* The first derivative image, y-direction. */
+       *magnitude;               /* The magnitude of the gadient image.      */
+   float *dir_radians = NULL;    /* Gradient direction image.                */
 
    /****************************************************************************
    * Perform gaussian smoothing on the image using the input standard
@@ -152,7 +152,8 @@ void canny(unsigned char image[ROW][COL], int rows, int cols, float sigma,
    ****************************************************************************/
    if (VERBOSE)
       printf("Doing the non-maximal suppression.\n");
-   if ((nms = (unsigned char *)calloc(rows * cols, sizeof(unsigned char))) == NULL)
+   //calloc 1
+   if (nms == NULL)
    {
       fprintf(stderr, "Error allocating the nms image.\n");
       exit(1);
@@ -165,7 +166,8 @@ void canny(unsigned char image[ROW][COL], int rows, int cols, float sigma,
    ****************************************************************************/
    if (VERBOSE)
       printf("Doing hysteresis thresholding.\n");
-   if ((*edge = (unsigned char *)calloc(rows * cols, sizeof(unsigned char))) == NULL)
+   //calloc 2
+   if (edge == NULL)
    {
       fprintf(stderr, "Error allocating the edge image.\n");
       exit(1);
@@ -181,7 +183,6 @@ void canny(unsigned char image[ROW][COL], int rows, int cols, float sigma,
    free(delta_x);
    free(delta_y);
    free(magnitude);
-   free(nms);
 }
 
 /*******************************************************************************
