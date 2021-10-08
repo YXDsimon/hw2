@@ -18,7 +18,7 @@ void make_gaussian_kernel(float sigma, float **kernel, int *windowsize);
 void derrivative_x_y(short int *smoothedim, int rows, int cols,
                      short int **delta_x, short int **delta_y);
 void magnitude_x_y(short int *delta_x, short int *delta_y, int rows, int cols,
-                   short int **magnitude);
+                   short int *magnitude);
 void apply_hysteresis(short int *mag, unsigned char *nms, int rows, int cols,
                       float tlow, float thigh, unsigned char *edge);
 void radian_direction(short int *delta_x, short int *delta_y, int rows,
@@ -96,7 +96,7 @@ void canny(unsigned char image[ROW][COL], int rows, int cols, float sigma,
    short int *smoothedim,        /* The image after gaussian smoothing.      */
        *delta_x,                 /* The first devivative image, x-direction. */
        *delta_y,                 /* The first derivative image, y-direction. */
-       *magnitude;               /* The magnitude of the gadient image.      */
+       magnitude[ROW * COL];     /* The magnitude of the gadient image.      */
    float *dir_radians = NULL;    /* Gradient direction image.                */
 
    /****************************************************************************
@@ -144,7 +144,7 @@ void canny(unsigned char image[ROW][COL], int rows, int cols, float sigma,
    ****************************************************************************/
    if (VERBOSE)
       printf("Computing the magnitude of the gradient.\n");
-   magnitude_x_y(delta_x, delta_y, rows, cols, &magnitude);
+   magnitude_x_y(delta_x, delta_y, rows, cols, magnitude);
 
    /****************************************************************************
    * Perform non-maximal suppression.
@@ -181,7 +181,6 @@ void canny(unsigned char image[ROW][COL], int rows, int cols, float sigma,
    free(smoothedim);
    free(delta_x);
    free(delta_y);
-   free(magnitude);
 }
 
 /*******************************************************************************
@@ -275,14 +274,15 @@ double angle_radians(double x, double y)
 * DATE: 2/15/96
 *******************************************************************************/
 void magnitude_x_y(short int *delta_x, short int *delta_y, int rows, int cols,
-                   short int **magnitude)
+                   short int *magnitude)
 {
    int r, c, pos, sq1, sq2;
 
    /****************************************************************************
    * Allocate an image to store the magnitude of the gradient.
    ****************************************************************************/
-   if ((*magnitude = (short *)calloc(rows * cols, sizeof(short))) == NULL)
+   //calloc 4
+   if (magnitude == NULL)
    {
       fprintf(stderr, "Error allocating the magnitude image.\n");
       exit(1);
@@ -294,7 +294,7 @@ void magnitude_x_y(short int *delta_x, short int *delta_y, int rows, int cols,
       {
          sq1 = (int)delta_x[pos] * (int)delta_x[pos];
          sq2 = (int)delta_y[pos] * (int)delta_y[pos];
-         (*magnitude)[pos] = (short)(0.5 + sqrt((float)sq1 + (float)sq2));
+         magnitude[pos] = (short)(0.5 + sqrt((float)sq1 + (float)sq2));
       }
    }
 }
@@ -317,7 +317,7 @@ void derrivative_x_y(short int *smoothedim, int rows, int cols,
    int r, c, pos;
 
    /****************************************************************************
-   * Allocate images to store the derivatives.
+   * Allocate images to store the derivatives. 
    ****************************************************************************/
    if (((*delta_x) = (short *)calloc(rows * cols, sizeof(short))) == NULL)
    {
