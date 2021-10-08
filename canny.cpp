@@ -14,7 +14,7 @@ void canny(unsigned char image[ROW][COL], int rows, int cols, float sigma,
            float tlow, float thigh, unsigned char edge[ROW * COL], char *fname);
 void gaussian_smooth(unsigned char image[ROW][COL], int rows, int cols, float sigma,
                      short int *smoothedim);
-void make_gaussian_kernel(float sigma, float **kernel, int *windowsize);
+void make_gaussian_kernel(float sigma, float *kernel, int *windowsize);
 void derrivative_x_y(short int *smoothedim, int rows, int cols,
                      short int *delta_x, short int *delta_y);
 void magnitude_x_y(short int *delta_x, short int *delta_y, int rows, int cols,
@@ -373,7 +373,7 @@ void gaussian_smooth(unsigned char image[ROW][COL], int rows, int cols, float si
        windowsize,          /* Dimension of the gaussian kernel. */
        center;              /* Half of the windowsize. */
    float tempim[ROW * COL], /* Buffer for separable filter gaussian smoothing. */
-       *kernel,             /* A one dimensional gaussian kernel. */
+       kernel[ROW * COL],   /* A one dimensional gaussian kernel. */
        dot,                 /* Dot product summing variable. */
        sum;                 /* Sum of the kernel weights variable. */
 
@@ -382,7 +382,7 @@ void gaussian_smooth(unsigned char image[ROW][COL], int rows, int cols, float si
    ****************************************************************************/
    if (VERBOSE)
       printf("   Computing the gaussian smoothing kernel.\n");
-   make_gaussian_kernel(sigma, &kernel, &windowsize);
+   make_gaussian_kernel(sigma, kernel, &windowsize);
    center = windowsize / 2;
 
    /****************************************************************************
@@ -447,7 +447,6 @@ void gaussian_smooth(unsigned char image[ROW][COL], int rows, int cols, float si
          smoothedim[r * cols + c] = (short int)(dot * BOOSTBLURFACTOR / sum + 0.5);
       }
    }
-   free(kernel);
 }
 
 /*******************************************************************************
@@ -456,7 +455,7 @@ void gaussian_smooth(unsigned char image[ROW][COL], int rows, int cols, float si
 * NAME: Mike Heath
 * DATE: 2/15/96
 *******************************************************************************/
-void make_gaussian_kernel(float sigma, float **kernel, int *windowsize)
+void make_gaussian_kernel(float sigma, float *kernel, int *windowsize)
 {
    int i, center;
    float x, fx, sum = 0.0;
@@ -466,7 +465,8 @@ void make_gaussian_kernel(float sigma, float **kernel, int *windowsize)
 
    if (VERBOSE)
       printf("      The kernel has %d elements.\n", *windowsize);
-   if ((*kernel = (float *)calloc((*windowsize), sizeof(float))) == NULL)
+   //calloc 9
+   if (kernel == NULL)
    {
       fprintf(stderr, "Error callocing the gaussian kernel array.\n");
       exit(1);
@@ -476,18 +476,18 @@ void make_gaussian_kernel(float sigma, float **kernel, int *windowsize)
    {
       x = (float)(i - center);
       fx = pow(2.71828, -0.5 * x * x / (sigma * sigma)) / (sigma * sqrt(6.2831853));
-      (*kernel)[i] = fx;
+      kernel[i] = fx;
       sum += fx;
    }
 
    for (i = 0; i < (*windowsize); i++)
-      (*kernel)[i] /= sum;
+      kernel[i] /= sum;
 
    if (VERBOSE)
    {
       printf("The filter coefficients are:\n");
       for (i = 0; i < (*windowsize); i++)
-         printf("kernel[%d] = %f\n", i, (*kernel)[i]);
+         printf("kernel[%d] = %f\n", i, kernel[i]);
    }
 }
 // <------------------------- end canny_edge.c ------------------------->
