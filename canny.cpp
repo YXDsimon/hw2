@@ -317,7 +317,7 @@ void derrivative_x_y(short int *smoothedim, int rows, int cols,
    /****************************************************************************
    * Allocate images to store the derivatives. 
    ****************************************************************************/
-   //   CALLOC 5
+   //   CALLOC 5 & 6
    if (delta_x == NULL)
    {
       fprintf(stderr, "Error allocating the delta_x image.\n");
@@ -375,13 +375,13 @@ void derrivative_x_y(short int *smoothedim, int rows, int cols,
 void gaussian_smooth(unsigned char image[ROW][COL], int rows, int cols, float sigma,
                      short int **smoothedim)
 {
-   int r, c, rr, cc, /* Counter variables. */
-       windowsize,   /* Dimension of the gaussian kernel. */
-       center;       /* Half of the windowsize. */
-   float *tempim,    /* Buffer for separable filter gaussian smoothing. */
-       *kernel,      /* A one dimensional gaussian kernel. */
-       dot,          /* Dot product summing variable. */
-       sum;          /* Sum of the kernel weights variable. */
+   int r, c, rr, cc,        /* Counter variables. */
+       windowsize,          /* Dimension of the gaussian kernel. */
+       center;              /* Half of the windowsize. */
+   float tempim[ROW * COL], /* Buffer for separable filter gaussian smoothing. */
+       *kernel,             /* A one dimensional gaussian kernel. */
+       dot,                 /* Dot product summing variable. */
+       sum;                 /* Sum of the kernel weights variable. */
 
    /****************************************************************************
    * Create a 1-dimensional gaussian smoothing kernel.
@@ -394,7 +394,8 @@ void gaussian_smooth(unsigned char image[ROW][COL], int rows, int cols, float si
    /****************************************************************************
    * Allocate a temporary buffer image and the smoothed image.
    ****************************************************************************/
-   if ((tempim = (float *)calloc(rows * cols, sizeof(float))) == NULL)
+   //   calloc 7
+   if (tempim == NULL)
    {
       fprintf(stderr, "Error allocating the buffer image.\n");
       exit(1);
@@ -452,8 +453,6 @@ void gaussian_smooth(unsigned char image[ROW][COL], int rows, int cols, float si
          (*smoothedim)[r * cols + c] = (short int)(dot * BOOSTBLURFACTOR / sum + 0.5);
       }
    }
-
-   free(tempim);
    free(kernel);
 }
 
